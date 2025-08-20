@@ -1,6 +1,10 @@
 attacks:
-  categories: [pii-leak, tool-abuse, jailbreak]
-  variants_per_template: 1
+  categories: ["pii-leak", "tool-abuse", "jailbreak"]
+  variants_per_template: 2         # was 1, now generate 2 extra LLM variants per template
+  use_llm: true
+  model: "gpt-oss:20b"
+judge:
+  use_llm_critic: true             # turn on the optional critic
 limits: {max_attacks: 24, timeout_seconds: 90}
 policies:
   enabled: [PP-PII-01, PP-TOOLS-01]

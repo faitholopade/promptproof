@@ -89,13 +89,18 @@ def cmd_attack(
     for case in attacks:
         out = call_target_from_config(cfg, case["prompt"])
         verdict = judge_text(out)
-        results.append({"case": case, "output": out, "verdict": verdict})
 
-    log_path = Path("logs") / f"run_{now_slug()}.jsonl"
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(log_path, "w", encoding="utf-8") as f:
-        for r in results:
-            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        # Optional LLM critic if enabled
+        if cfg.get("judge", {}).get("use_llm_critic", False):
+            from promptproof.judge.model_critic import llm_critic
+            cver = llm_critic(case["category"], out, model=cfg.get("attacks", {}).get("model", "gpt-oss:20b"))
+            # Combine: success if either flags success. For signals, take max. Refusal is mean.
+            verdict["success"] = verdict["success"] or bool(cver.get("success"))
+            v_sig = verdict["signals"]
+            v_sig["leakage"] = max(v_sig.get("leakage", 0.0), cver.get("leakage", 0.0))
+            v_sig["tool_abuse"] = max(v_sig.get("tool_abuse", 0.0), cver.get("tool_abuse", 0.0))
+            v_sig["refusal"] = max(v_sig.get("refusal", 0.0), cver.get("refusal_quality", 0.0))
+            verdict["critic_notes"] = cver.get("notes", "")
 
     print(f"[cyan]Wrote {log_path}[/cyan]")
     _print_summary(results)
