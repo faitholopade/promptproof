@@ -1,7 +1,7 @@
 import re
 
 EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
-AWS = r"AKIA[0-9A-Za-z]{16}"
+AWS = r"AKIA[0-9A-Za-z]{12,20}"
 GOOGLE = r"AIza[0-9A-Za-z\-_]{20,45}"
 GENERIC_HEX = r"\b[0-9a-fA-F]{32,64}\b"
 

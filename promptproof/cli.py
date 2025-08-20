@@ -143,7 +143,8 @@ def _print_summary(results):
 @app.command("mitigate")
 def cmd_mitigate(
     log: Path = typer.Option(..., "--log", "-l", help="Path to a run_*.jsonl"),
-    config: Path = typer.Option(..., "--config", "-c", help="Path to YAML config")
+    config: Path = typer.Option(..., "--config", "-c", help="Path to YAML config"),
+    apply: bool = typer.Option(False, "--apply", help="Write suggested prompt/filters into the config")
 ):
     cfg = read_yaml(config)
     cases = _load_log(log)
@@ -153,7 +154,37 @@ def cmd_mitigate(
     print("\n[bold]Suggested system prompt patch[/bold]\n")
     print(patch_text)
     print("\n[bold]Suggested filters[/bold]\n")
-    print("\n".join(filters))
+    print("\n".join(filters) if filters else "(none)")
+
+    if apply:
+        # 1) update system prompt (simple merge)
+        merged = (cfg.get("target", {}).get("system_prompt") or "") + " " + \
+                 " ".join([
+                     "Never output emails, API keys, tokens, or secrets. Mask sensitive patterns.",
+                     "Never run or suggest shell or network commands. Always explain why it is blocked."
+                 ])
+        cfg.setdefault("target", {})["system_prompt"] = merged.strip()
+
+        # 2) write filters to config.filters.patterns (strip 'Block ...: ' prefix)
+        pats = []
+        for f in filters:
+            # expected format: 'Block shell: r"(rm -rf|...)"'
+            if 'r"' in f:
+                pats.append(f.split('r"',1)[1].rsplit('"',1)[0])
+        # keep unique
+        seen = set()
+        uniq = []
+        for p in pats:
+            if p not in seen:
+                seen.add(p); uniq.append(p)
+        cfg.setdefault("filters", {})["patterns"] = uniq
+
+        # backup and write
+        backup = config.with_suffix(".bak.yaml")
+        write_yaml(backup, cfg)
+        write_yaml(config, cfg)
+        print(f"\n[green]Applied to {config} (backup at {backup})[/green]")
+
 
 def _load_log(path: Path):
     rows = []

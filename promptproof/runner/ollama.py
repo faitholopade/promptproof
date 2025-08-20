@@ -19,7 +19,7 @@ def _post_json(path: str, payload: dict) -> dict:
     except Exception as e:
         raise OllamaError(f"Ollama request failed: {e}")
 
-def generate_text(model: str, prompt: str, temperature: float = 0.3, max_tokens: int = 120) -> str:
+def generate_text(model: str, prompt: str, temperature: float = 0.3, max_tokens: int = 80) -> str:
     payload = {
         "model": model,
         "prompt": prompt,
@@ -32,7 +32,7 @@ def generate_text(model: str, prompt: str, temperature: float = 0.3, max_tokens:
     data = _post_json("/api/generate", payload)
     return data.get("response", "")
 
-def generate_json(model: str, system: str, user: str, schema_hint: str, temperature: float = 0.3, max_tokens: int = 120) -> dict:
+def generate_json(model: str, system: str, user: str, schema_hint: str, temperature: float = 0.3, max_tokens: int = 80) -> dict:
     prompt = (
         f"{system}\n\n"
         f"{user}\n\n"
