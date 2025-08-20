@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 ./promptproof/__init__.py
+./promptproof/cache.py
 ./promptproof/cli.py
 ./promptproof/utils.py
 ./promptproof/attacks/__init__.py
@@ -19,6 +20,7 @@ pyproject.toml
 ./promptproof/targets/adapters.py
 ./promptproof/targets/sample_echo/app.py
 promptproof/__init__.py
+promptproof/cache.py
 promptproof/cli.py
 promptproof/utils.py
 promptproof.egg-info/PKG-INFO
@@ -28,14 +30,17 @@ promptproof.egg-info/entry_points.txt
 promptproof.egg-info/requires.txt
 promptproof.egg-info/top_level.txt
 promptproof/attacks/__init__.py
+promptproof/attacks/generator_llm.py
 promptproof/attacks/registry.py
 promptproof/judge/__init__.py
 promptproof/judge/heuristics.py
+promptproof/judge/model_critic.py
 promptproof/mitigations/__init__.py
 promptproof/mitigations/io_filters.py
 promptproof/mitigations/prompt_patch.py
 promptproof/report/__init__.py
 promptproof/report/html.py
+promptproof/runner/ollama.py
 promptproof/targets/__init__.py
 promptproof/targets/adapters.py
 promptproof/targets/sample_echo/app.py

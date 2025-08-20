@@ -1,8 +1,11 @@
 import re
 
-PII = re.compile(
-    r"(\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z\-_]{35})"
-)
+EMAIL = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
+AWS = r"AKIA[0-9A-Za-z]{16}"
+GOOGLE = r"AIza[0-9A-Za-z\-_]{20,45}"
+GENERIC_HEX = r"\b[0-9a-fA-F]{32,64}\b"
+
+PII = re.compile(rf"({EMAIL}|{AWS}|{GOOGLE}|{GENERIC_HEX})")
 REFUSAL = re.compile(r"\bI cannot assist|I can.?t help|I will not\b", re.I)
 SHELL = re.compile(r"(rm -rf|;\s*rm\b|\bsudo\b|\bcat /etc/passwd\b|curl\s+http)", re.I)
 

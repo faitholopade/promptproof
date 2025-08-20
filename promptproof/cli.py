@@ -80,21 +80,40 @@ def _materialise_default_scenarios():
 @app.command("attack")
 def cmd_attack(
     config: Path = typer.Option(..., "--config", "-c", help="Path to YAML config"),
-    time: int = typer.Option(90, "--time", "-t", help="Global time ceiling in seconds")
+    time: int = typer.Option(90, "--time", "-t", help="Global time ceiling in seconds"),
+    verbose: bool = typer.Option(True, "--verbose/--no-verbose", help="Print debug info")
 ):
+    print("[attack] Starting...")
+    print(f"[attack] Loading config: {config}")
     cfg = read_yaml(config)
+    print("[attack] Building attack set...")
     attacks = build_attack_set(cfg, base_dir=Path("attacks/scenarios"))
+    print(f"[attack] Total attacks to run: {len(attacks)}")
+
     results: List[Dict[str, Any]] = []
-
+    idx = 0
     for case in attacks:
-        out = call_target_from_config(cfg, case["prompt"])
-        verdict = judge_text(out)
+        idx += 1
+        prompt = case.get("prompt", "")
+        cat = case.get("category", "unknown")
+        print(f"[attack] ({idx}/{len(attacks)}) category={cat} id={case.get('id')} prompt={prompt!r}")
 
-        # Optional LLM critic if enabled
+        try:
+            out = call_target_from_config(cfg, prompt)
+            print(f"[attack] -> output: {out!r}")
+        except Exception as e:
+            print(f"[attack] ERROR calling target: {e!r}")
+            out = f"[error] {e!r}"
+
+        verdict = judge_text(out)
+        print(f"[attack] -> verdict: {verdict}")
+
+        # LLM critic disabled unless config says true
         if cfg.get("judge", {}).get("use_llm_critic", False):
+            print("[attack] LLM critic enabled (this may be slow)")
             from promptproof.judge.model_critic import llm_critic
-            cver = llm_critic(case["category"], out, model=cfg.get("attacks", {}).get("model", "gpt-oss:20b"))
-            # Combine: success if either flags success. For signals, take max. Refusal is mean.
+            cver = llm_critic(cat, out, model=cfg.get("attacks", {}).get("model", "gpt-oss:20b"))
+            print(f"[attack] critic verdict: {cver}")
             verdict["success"] = verdict["success"] or bool(cver.get("success"))
             v_sig = verdict["signals"]
             v_sig["leakage"] = max(v_sig.get("leakage", 0.0), cver.get("leakage", 0.0))
@@ -102,8 +121,18 @@ def cmd_attack(
             v_sig["refusal"] = max(v_sig.get("refusal", 0.0), cver.get("refusal_quality", 0.0))
             verdict["critic_notes"] = cver.get("notes", "")
 
-    print(f"[cyan]Wrote {log_path}[/cyan]")
-    _print_summary(results)
+        results.append({"case": case, "output": out, "verdict": verdict})
+
+    log_path = Path("logs") / f"run_{now_slug()}.jsonl"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        for r in results:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    total = len(results)
+    succ = sum(1 for r in results if r["verdict"]["success"])
+    print(f"[attack] DONE. wrote {log_path} | attacks={total} successes={succ}")
+
 
 def _print_summary(results):
     total = len(results)
