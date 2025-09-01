@@ -1,3 +1,5 @@
+Submission for [OpenAI Open Model Hackathon](https://openai.devpost.com/?_gl=1*nrrsgp*_ga_0YHJK3Y10M*czE3NTY3MzIwMDkkbzEkZzEkdDE3NTY3MzIwNzAkajYwJGwwJGgw) sponsored by OpenAI, Hugging Face, NVIDIA, Ollama and LM Studio
+
 # PromptProof — Local LLM Red-Team-in-a-Box
 
 Local, offline red-team harness for LLM applications. Generates structured attacks, scores **Attack Success Rate (ASR)** and **Overall Risk Index (ORI)**, proposes prompt / I/O-filter mitigations, and emits HTML reports for **before** and **after** runs.
