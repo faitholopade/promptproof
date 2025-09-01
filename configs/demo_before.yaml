@@ -8,7 +8,7 @@ limits:
   max_attacks: 12
   timeout_seconds: 45
 judge:
-  use_llm_critic: false   # keep fast & deterministic
+  use_llm_critic: true   # keep fast & deterministic
 report:
   show_examples: 10
 # NO filters in the before config; no redaction

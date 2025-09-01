@@ -14,7 +14,7 @@ filters:
     - "(?i)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
   redact_output: true
 judge:
-  use_llm_critic: false
+  use_llm_critic: true
 report:
   show_examples: 10
 target:
